@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -29,12 +29,12 @@ async function run() {
     try {
         await client.connect()
 
-        const storeCollection = client.db('bicycle').collection('store')
+        const bicycleCollection = client.db('bicycle').collection('store')
         const bicycleCollection2 = client.db('bicycle2').collection('store2')
 
         app.get('/bicycle', async (req, res) => {
             const query = {};
-            const cursor = storeCollection.find(query);
+            const cursor = bicycleCollection.find(query);
             const result = await cursor.toArray();
             res.send(result)
         })
@@ -44,6 +44,29 @@ async function run() {
             const cursor = bicycleCollection2.find(query);
             const result = await cursor.toArray();
             res.send(result)
+        })
+        // 
+        app.get('/bicycle/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const server = await bicycleCollection.findOne(query);
+            res.send(server);
+
+        })
+        // post
+
+        app.post('/bicycle', async (req, res) => {
+            const newServer = req.body;
+            const result = await bicycleCollection.insertOne(newServer);
+            res.send(result);
+        });
+
+        // Delete
+        app.delete('/bicycle/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await bicycleCollection.deleteOne(query);
+            res.send(result);
         })
     }
     catch {
